@@ -15,7 +15,7 @@ class Vertex:
     def updateSP(self, pathValue: int):
         self.shortestPath = pathValue
     def __repr__(self) -> str:
-        return f"vertex{self.number} connected to {len(self.edges)} vertices"
+        return f"vertex{self.number} connected to {len(self.edges)} vertices, with shortest path {self.shortestPath}"
 class Heap:
     def __init__(self):
         self.vertices = []
@@ -88,13 +88,14 @@ class Heap:
 
 graph = dict()
 
-with open('problem9.8test.txt', 'r') as file:
+with open('problem9.8.txt', 'r') as file:
     lines = [_.strip().split('\t') for _ in file.readlines()]
     for line in lines:
-        edges = [Edge([int(line[0]),int(line[i].split(',')[0])],int(line[i].split(',')[1])) for i in range(1,len(line))]
+        edges = [Edge([int(line[0]),int(line[i].split(',')[0])], 
+                      int(line[i].split(',')[1])) for i in range(1,len(line))]
         number = int(line[0])
         graph[number] = Vertex(number,edges)
-    print(graph)
+    # print(graph)
 
 treated_vertices = set()
 treated_vertices.add(graph[1])
@@ -104,14 +105,27 @@ for edge in graph[1].edges:
     graph[edge.vertices[1]].shortestPath = \
             graph[edge.vertices[0]].shortestPath + edge.weight
     dijkstra_heap.insertVertex(graph[edge.vertices[1]])
-print(dijkstra_heap)
+# print(dijkstra_heap)
 
 while len(graph)>len(treated_vertices):
     vertex_to_treat = dijkstra_heap.retrieveMin()
     treated_vertices.add(vertex_to_treat)
+    # print(f"{vertex_to_treat} treated")
+    # print(dijkstra_heap)
+    # print(graph)
     for edge in vertex_to_treat.edges:
         if not(graph[edge.vertices[1]] in treated_vertices):
-            graph[edge.vertices[1]].shortestPath = min(
+            if edge.vertices[1] in dijkstra_heap.hashTable:
+                if graph[edge.vertices[0]].shortestPath + edge.weight <  graph[edge.vertices[1]].shortestPath:
+                    dijkstra_heap.deleteVertex(edge.vertices[1])
+                    graph[edge.vertices[1]].shortestPath = graph[edge.vertices[0]].shortestPath + edge.weight 
+                    dijkstra_heap.insertVertex(graph[edge.vertices[1]])
+            else:
+                graph[edge.vertices[1]].shortestPath = graph[edge.vertices[0]].shortestPath + edge.weight 
+                dijkstra_heap.insertVertex(graph[edge.vertices[1]])
+
+print([graph[i].shortestPath for i in [7,37,59,82,99,115,133,165,188,197]])
+
     
 
 # graph[1].shortestPath = 8
